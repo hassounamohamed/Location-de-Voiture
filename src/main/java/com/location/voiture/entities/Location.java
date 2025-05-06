@@ -15,13 +15,15 @@ import java.time.LocalDate;
 public class Location {
     @Id
     @GeneratedValue(strategy =  GenerationType.IDENTITY)
-    private Long UtilisateurId;
+    private Long id;
     private LocalDate dateDebut;
     private LocalDate dateFin;
 
     @ManyToOne
+    @JoinColumn(name = "client_id")  // Explicit column name
     private Utilisateur client;
 
     @ManyToOne
-    private  Voiture voiture;
+    @JoinColumn(name = "voiture_id")  // Explicit column name
+    private Voiture voiture;
 }
