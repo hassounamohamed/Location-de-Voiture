@@ -17,18 +17,17 @@ public class VoitureService {
         return voitureRepository.findAll();
     }
 
-    public List<Voiture> getVoituresDisponibles () {
-        return voitureRepository.findByDisponibiliteTrue();
-    }
-    public boolean updatedVoiture(long id , Voiture updatedVoiture) throws Exception {
-        if (id == 0) {
-            throw new Exception();
-            return false;
+    public boolean updatedVoiture(long id, Voiture updatedVoiture) throws Exception {
+        Optional<Voiture> existingVoiture = voitureRepository.findById(id);
+        if (existingVoiture.isPresent()) {
+            updatedVoiture.setId(id); // s'assurer que l’ID reste le même
+            voitureRepository.save(updatedVoiture);
+            return true;
+        } else {
+            throw new Exception("Voiture with ID " + id + " not found.");
         }
-        String sql= "update * from voiture into updatedVoiture where voiture.id=id ";
-        return voitureService.saveVoiture(updatedVoiture);
-
     }
+
 
     public Optional<Voiture> getVoitureById(Long id) {
         return voitureRepository.findById(id);
@@ -39,6 +38,10 @@ public class VoitureService {
     }
     public void deleteVoiture(Long id) {
         voitureRepository.deleteById(id);
+    }
+
+    public List<Voiture> getVoituresDisponibles() {
+        return voitureRepository.findByDisponibiliteTrue();
     }
 
 }
