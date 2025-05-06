@@ -28,7 +28,24 @@ public class UtilisateurService {
     public Utilisateur saveUtilisateur(Utilisateur utilisateur) {
         return utilisateurRepository.save(utilisateur);
     }
-    public void deleteUtilisateur(Long id) {
-        utilisateurRepository.deleteById(id);
+    public boolean deleteUtilisateur(Long id) {
+        if (utilisateurRepository.existsById(id)) {
+            utilisateurRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
+
+    public Utilisateur updateUtilisateur(Long id, Utilisateur utilisateurDetails) {
+        return utilisateurRepository.findById(id).map(utilisateur -> {
+            utilisateur.setNom(utilisateurDetails.getNom());
+            utilisateur.setPrenom(utilisateurDetails.getPrenom());
+            utilisateur.setEmail(utilisateurDetails.getEmail());
+            utilisateur.setMotDePasse(utilisateurDetails.getMotDePasse());
+            utilisateur.setTelephone(utilisateurDetails.getTelephone());
+            utilisateur.setRole(utilisateurDetails.getRole());
+            return utilisateurRepository.save(utilisateur);
+        }).orElse(null);
+    }
+
 }
