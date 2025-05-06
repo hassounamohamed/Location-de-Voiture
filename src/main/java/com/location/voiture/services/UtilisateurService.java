@@ -36,6 +36,7 @@ public class UtilisateurService {
         return false;
     }
 
+
     public Utilisateur updateUtilisateur(Long id, Utilisateur utilisateurDetails) {
         return utilisateurRepository.findById(id).map(utilisateur -> {
             utilisateur.setNom(utilisateurDetails.getNom());
