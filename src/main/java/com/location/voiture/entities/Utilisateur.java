@@ -27,7 +27,8 @@ public class Utilisateur {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-  
+
+
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Location> locations;
