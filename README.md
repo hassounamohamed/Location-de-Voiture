@@ -29,5 +29,5 @@ Application backend pour un système de gestion de location de voitures.
 
 1. **Cloner le dépôt** :
    ```bash
-   git clone https://github.com/votreuser/location-voiture.git
+   git clone https://github.com/hassounamohamed/Location-de-Voiture
    cd location-voiture
