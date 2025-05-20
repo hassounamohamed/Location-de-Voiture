@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réservation de Voiture</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    .car-card {
+      transition: transform 0.3s;
+    }
+
+    .car-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .car-selected {
+      border: 2px solid #0d6efd;
+    }
+
+    .footer {
+      background-color: #343a40;
+      color: white;
+      padding: 30px 0;
+    }
+
+    .reservation-details {
+      position: sticky;
+      top: 20px;
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#">CarRental</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/">Accueil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="/location-page">Réserver</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/#services">Services</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/#contact">Contact</a>
+        </li>
+      </ul>
+      <div class="d-flex">
+        <button id="loginBtn" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">Se Connecter</button>
+        <button id="registerBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#registerModal">S'inscrire</button>
+        <div id="userMenu" class="dropdown d-none">
+          <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-user"></i> <span id="username">Utilisateur</span>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="#" id="profileLink">Mon profil</a></li>
+            <li><a class="dropdown-item" href="#" id="reservationsLink">Mes réservations</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logoutLink">Déconnexion</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <h1 class="mb-4">Réservation de Voiture</h1>
+
+  <!-- Booking Form -->
+  <div class="row">
+    <div class="col-lg-3 mb-4">
+      <div class="card reservation-details">
+        <div class="card-body">
+          <h4 class="card-title">Détails de la réservation</h4>
+          <form id="bookingForm">
+            <div class="mb-3">
+              <label for="dateDebut" class="form-label">Date de début</label>
+              <input type="text" class="form-control" id="dateDebut" placeholder="Sélectionner une date" required>
+            </div>
+            <div class="mb-3">
+              <label for="dateFin" class="form-label">Date de fin</label>
+              <input type="text" class="form-control" id="dateFin" placeholder="Sélectionner une date" required>
+            </div>
+
+            <div id="selectedCarInfo" class="mb-3 d-none">
+              <h5>Voiture sélectionnée</h5>
+              <p id="selectedCarDetails">Aucune voiture sélectionnée</p>
+              <p>Prix total: <span id="totalPrice">0</span> €</p>
+            </div>
+
+            <div class="alert alert-danger d-none" id="bookingError"></div>
+
+            <button type="submit" class="btn btn-primary w-100" id="reserveBtn" disabled>Réserver</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="row mb-4">
+        <div class="col">
+          <div class="input-group">
+            <input type="text" class="form-control" id="searchCar" placeholder="Rechercher une voiture...">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-auto">
+          <select class="form-select" id="sortCars">
+            <option value="marque">Trier par marque</option>
+            <option value="prix-asc">Prix croissant</option>
+            <option value="prix-desc">Prix décroissant</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Cars List -->
+      <div class="row" id="carsList">
+        <div class="text-center py-5">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Chargement des voitures disponibles...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>À propos de nous</h5>
+        <p>Nous sommes une entreprise de location de voitures offrant des services de qualité depuis plus de 10 ans.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Liens rapides</h5>
+        <ul class="list-unstyled">
+          <li><a href="/" class="text-white">Accueil</a></li>
+          <li><a href="/location-page" class="text-white">Réserver</a></li>
+          <li><a href="/#services" class="text-white">Services</a></li>
+          <li><a href="/#contact" class="text-white">Contact</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h5>Newsletter</h5>
+        <p>Abonnez-vous pour recevoir nos offres spéciales</p>
+        <form class="d-flex">
+          <input type="email" class="form-control me-2" placeholder="Votre email">
+          <button class="btn btn-outline-light" type="submit">S'abonner</button>
+        </form>
+      </div>
+    </div>
+    <hr class="mt-4">
+    <div class="text-center">
+      <p>&copy; 2025 CarRental. Tous droits réservés.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- Login Modal -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loginModalLabel">Connexion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="loginEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="loginEmail" required>
+          </div>
+          <div class="mb-3">
+            <label for="loginPassword" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="loginPassword" required>
+          </div>
+          <div class="alert alert-danger d-none" id="loginError"></div>
+          <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <p class="w-100 text-center">Pas encore de compte? <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">S'inscrire</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Register Modal -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="registerModalLabel">Inscription</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="registerForm">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="registerNom" class="form-label">Nom</label>
+              <input type="text" class="form-control" id="registerNom" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="registerPrenom" class="form-label">Prénom</label>
+              <input type="text" class="form-control" id="registerPrenom" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="registerEmail" class="form-label">Email</label>
+            <input type="email" class="form-control" id="registerEmail" required>
+          </div>
+          <div class="mb-3">
+            <label for="registerPassword" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="registerPassword" required>
+          </div>
+          <div class="mb-3">
+            <label for="registerTelephone" class="form-label">Téléphone</label>
+            <input type="tel" class="form-control" id="registerTelephone" required>
+          </div>
+          <div class="alert alert-danger d-none" id="registerError"></div>
+          <button type="submit" class="btn btn-primary w-100">S'inscrire</button>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <p class="w-100 text-center">Déjà inscrit? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Se connecter</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Confirmation Modal -->
+<div class="modal fade" id="bookingConfirmationModal" tabindex="-1" aria-labelledby="bookingConfirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingConfirmationModalLabel">Confirmation de Réservation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="text-center">Votre réservation a été confirmée!</h4>
+        <div class="card mt-4">
+          <div class="card-body">
+            <h5>Détails de la réservation:</h5>
+            <div id="confirmationDetails"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="/location-page" class="btn btn-secondary">Réserver une autre voiture</a>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script>
+  let cars = [];
+  let selectedCarId = null;
+  const today = new Date();
+  let startDate = null;
+  let endDate = null;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
+
+    if (token) {
+      // User is logged in
+      document.getElementById('loginBtn').classList.add('d-none');
+      document.getElementById('registerBtn').classList.add('d-none');
+      document.getElementById('userMenu').classList.remove('d-none');
+
+      // Add admin dashboard link if user is admin
+      if (userRole === 'ADMIN') {
+        const userDropdown = document.querySelector('#userDropdown + .dropdown-menu');
+        const separator = userDropdown.querySelector('.dropdown-divider');
+
+        const adminLi = document.createElement('li');
+        adminLi.innerHTML = '<a class="dropdown-item" href="/dashboard">Dashboard Admin</a>';
+        userDropdown.insertBefore(adminLi, separator);
+      }
+    }
+
+    // Initialize date pickers
+    flatpickr("#dateDebut", {
+      locale: "fr",
+      minDate: "today",
+      dateFormat: "Y-m-d",
+      onChange: function(selectedDates, dateStr) {
+        startDate = selectedDates[0];
+        flatpickr("#dateFin", {
+          locale: "fr",
+          minDate: new Date(startDate.getTime() + 86400000), // next day
+          dateFormat: "Y-m-d",
+          onChange: function(selectedDates, dateStr) {
+            endDate = selectedDates[0];
+            updateTotalPrice();
+          }
+        });
+
+        // Enable or disable reserve button
+        checkReservationFormValid();
+      }
+    });
+
+    // Load available cars
+    fetchAvailableCars();
+
+    // Search functionality
+    document.getElementById('searchCar').addEventListener('input', function() {
+      filterCars();
+    });
+
+    // Sort functionality
+    document.getElementById('sortCars').addEventListener('change', function() {
+      sortCars(this.value);
+    });
+
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('loginEmail').value;
+      const motDePasse = document.getElementById('loginPassword').value;
+
+      loginUser(email, motDePasse);
+    });
+
+    // Register form submission
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const nom = document.getElementById('registerNom').value;
+      const prenom = document.getElementById('registerPrenom').value;
+      const email = document.getElementById('registerEmail').value;
+      const motDePasse = document.getElementById('registerPassword').value;
+      const telephone = document.getElementById('registerTelephone').value;
+
+      registerUser(nom, prenom, email, motDePasse, telephone);
+    });
+
+    // Booking form submission
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Check if user is logged in
+      if (!localStorage.getItem('token')) {
+        // Show login modal
+        new bootstrap.Modal(document.getElementById('loginModal')).show();
+        return;
+      }
+
+      bookCar();
+    });
+
+    // Logout
+    document.getElementById('logoutLink').addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
+  });
+
+  function fetchAvailableCars() {
+    fetch('/api/voiture/disponibles')
+            .then(response => response.json())
+            .then(data => {
+              cars = data;
+              displayCars(cars);
+            })
+            .catch(error => {
+              console.error('Error fetching cars:', error);
+              document.getElementById('carsList').innerHTML = '<div class="col-12 text-center"><p>Erreur lors du chargement des voitures.</p></div>';
+            });
+  }
+
+  function displayCars(carsToDisplay) {
+    const carsListContainer = document.getElementById('carsList');
+    carsListContainer.innerHTML = '';
+
+    if (carsToDisplay.length === 0) {
+      carsListContainer.innerHTML = '<div class="col-12 text-center"><p>Aucune voiture disponible pour le moment.</p></div>';
+      return;
+    }
+
+    carsToDisplay.forEach(car => {
+      const carCard = document.createElement('div');
+      carCard.className = 'col-md-6 col-lg-4 mb-4';
+      carCard.innerHTML = `
+                    <div class="card car-card h-100" data-car-id="${car.id}">
+                        <img src="https://via.placeholder.com/300x200?text=${car.marque}+${car.modele}" class="card-img-top" alt="${car.marque} ${car.modele}">
+                        <div class="card-body">
+                            <h5 class="card-title">${car.marque} ${car.modele}</h5>
+                            <p class="card-text">Immatriculation: ${car.immatriculation}</p>
+                            <p class="card-text">Prix: ${car.prixParJour} € / jour</p>
+                            <button class="btn btn-outline-primary select-car-btn">Sélectionner</button>
+                        </div>
+                    </div>
+                `;
+      carsListContainer.appendChild(carCard);
+
+      // Add event listener to select car button
+      carCard.querySelector('.select-car-btn').addEventListener('click', function() {
+        selectCar(car.id);
+      });
+    });
+  }
+
+  function selectCar(carId) {
+    // Remove selected class from all cars
+    document.querySelectorAll('.car-card').forEach(card => {
+      card.classList.remove('car-selected');
+    });
+
+    // Add selected class to clicked car
+    document.querySelector(`.car-card[data-car-id="${carId}"]`).classList.add('car-selected');
+
+    // Set selected car id
+    selectedCarId = carId;
+
+    // Get car details
+    const car = cars.find(car => car.id === carId);
+
+    // Show selected car info
+    document.getElementById('selectedCarInfo').classList.remove('d-none');
+    document.getElementById('selectedCarDetails').textContent = `${car.marque} ${car.modele} - ${car.prixParJour} € / jour`;
+
+    // Update total price
+    updateTotalPrice();
+
+    // Enable or disable reserve button
+    checkReservationFormValid();
+  }
+
+  function updateTotalPrice() {
+    if (!selectedCarId || !startDate || !endDate) {
+      return;
+    }
+
+    const car = cars.find(car => car.id === selectedCarId);
+    const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+    const totalPrice = car.prixParJour * days;
+
+    document.getElementById('totalPrice').textContent = totalPrice;
+  }
+
+  function checkReservationFormValid() {
+    const reserveBtn = document.getElementById('reserveBtn');
+
+    if (selectedCarId && startDate && endDate) {
+      reserveBtn.disabled = false;
+    } else {
+      reserveBtn.disabled = true;
+    }
+  }
+
+  function filterCars() {
+    const searchTerm = document.getElementById('searchCar').value.toLowerCase();
+
+    const filteredCars = cars.filter(car => {
+      return car.marque.toLowerCase().includes(searchTerm) ||
+              car.modele.toLowerCase().includes(searchTerm) ||
+              car.immatriculation.toLowerCase().includes(searchTerm);
+    });
+
+    displayCars(filteredCars);
+  }
+
+  function sortCars(sortBy) {
+    let sortedCars = [...cars];
+
+    switch (sortBy) {
+      case 'marque':
+        sortedCars.sort((a, b) => a.marque.localeCompare(b.marque));
+        break;
+      case 'prix-asc':
+        sortedCars.sort((a, b) => a.prixParJour - b.prixParJour);
+        break;
+      case 'prix-desc':
+        sortedCars.sort((a, b) => b.prixParJour - a.prixParJour);
+        break;
+    }
+
+    displayCars(sortedCars);
+  }
+
+  function bookCar() {
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+
+    if (!userId || !token || !selectedCarId || !startDate || !endDate) {
+      return;
+    }
+
+    const bookingData = {
+      dateDebut: startDate.toISOString().split('T')[0],
+      dateFin: endDate.toISOString().split('T')[0],
+      client: {
+        id: parseInt(userId)
+      },
+      voiture: {
+        id: selectedCarId
+      }
+    };
+
+    fetch('/api/locations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(bookingData)
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Erreur lors de la réservation');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Show booking confirmation
+              const car = cars.find(car => car.id === selectedCarId);
+              const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+              const totalPrice = car.prixParJour * days;
+
+              document.getElementById('confirmationDetails').innerHTML = `
+                    <p><strong>Voiture:</strong> ${car.marque} ${car.modele}</p>
+                    <p><strong>Immatriculation:</strong> ${car.immatriculation}</p>
+                    <p><strong>Date de début:</strong> ${bookingData.dateDebut}</p>
+                    <p><strong>Date de fin:</strong> ${bookingData.dateFin}</p>
+                    <p><strong>Durée:</strong> ${days} jours</p>
+                    <p><strong>Prix total:</strong> ${totalPrice} €</p>
+                `;
+
+              // Show confirmation modal
+              new bootstrap.Modal(document.getElementById('bookingConfirmationModal')).show();
+
+              // Reset form
+              document.getElementById('bookingForm').reset();
+              document.getElementById('selectedCarInfo').classList.add('d-none');
+              document.querySelectorAll('.car-card').forEach(card => {
+                card.classList.remove('car-selected');
+              });
+              selectedCarId = null;
+              startDate = null;
+              endDate = null;
+
+              // Refresh available cars
+              fetchAvailableCars();
+            })
+            .catch(error => {
+              document.getElementById('bookingError').textContent = error.message;
+              document.getElementById('bookingError').classList.remove('d-none');
+            });
+  }
+
+  function loginUser(email, motDePasse) {
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        motDePasse: motDePasse
+      })
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Email ou mot de passe incorrect');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Save token and user info
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('userId', data.userId);
+              localStorage.setItem('userRole', data.role);
+
+              // Close modal and refresh page
+              bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+              window.location.reload();
+            })
+            .catch(error => {
+              document.getElementById('loginError').textContent = error.message;
+              document.getElementById('loginError').classList.remove('d-none');
+            });
+  }
+
+  function registerUser(nom, prenom, email, motDePasse, telephone) {
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nom: nom,
+        prenom: prenom,
+        email: email,
+        motDePasse: motDePasse,
+        telephone: telephone
+      })
+    })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Erreur lors de l\'inscription');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Save token and user info
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('userId', data.userId);
+              localStorage.setItem('userRole', data.role);
+
+              // Close modal and refresh page
+              bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+              window.location.reload();
+            })
+            .catch(error => {
+              document.getElementById('registerError').textContent = error.message;
+              document.getElementById('registerError').classList.remove('d-none');
+            });
+  }
+
+  function logout() {
+    // Clear local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+
+    // Reload page
+    window.location.reload();
+  }
+</script>
+</body>
+</html>

@@ -15,6 +15,9 @@ public class UtilisateurService {
 
     public List<Utilisateur> getAllUtilisateurs(){
         return utilisateurRepository.findAll();
+
+
+        
     }
 
     public Optional<Utilisateur> getUtilisateurById(Long id) {
@@ -48,5 +51,7 @@ public class UtilisateurService {
             return utilisateurRepository.save(utilisateur);
         }).orElse(null);
     }
+
+
 
 }

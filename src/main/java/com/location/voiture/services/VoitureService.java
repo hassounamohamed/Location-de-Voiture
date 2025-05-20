@@ -43,5 +43,16 @@ public class VoitureService {
     public List<Voiture> getVoituresDisponibles() {
         return voitureRepository.findByDisponibiliteTrue();
     }
+    public long countAllVoitures() {
+        return voitureRepository.count();
+    }
+
+    public long countAvailableVoitures() {
+        return voitureRepository.countByDisponibiliteTrue();
+    }
+
+    public List<Voiture> getRecentVoitures(int limit) {
+        return voitureRepository.findTopNByOrderByIdDesc(limit);
+    }
 
 }

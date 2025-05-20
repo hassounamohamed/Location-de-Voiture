@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Location de Voitures</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .hero {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://via.placeholder.com/1500x600');
+      height: 500px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      position: relative;
+    }
+
+    .hero-content {
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+    }
+
+    .feature-box {
+      padding: 20px;
+      text-align: center;
+      border-radius: 5px;
+      transition: transform 0.3s;
+    }
+
+    .feature-box:hover {
+      transform: translateY(-10px);
+    }
+
+    .footer {
+      background-color: #343a40;
+      color: white;
+      padding: 30px 0;
+    }
+
+    .car-card {
+      transition: transform 0.3s;
+    }
+
+    .car-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">CarRental</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="/">Accueil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/location">Réserver</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#services">Services</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contact">Contact</a>
+        </li>
+      </ul>
+      <div class="d-flex">
+        <div th:if="${#authentication == null || #authentication.principal == 'anonymousUser'}">
+          <a href="/login" class="btn btn-outline-light me-2">Se Connecter</a>
+          <a href="/register" class="btn btn-primary">S'inscrire</a>
+        </div>
+        <div th:if="${#authentication != null && #authentication.principal != 'anonymousUser'}">
+          <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user"></i> <span th:text="${#authentication.principal.username}">Utilisateur</span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/profile">Mon profil</a></li>
+              <li><a class="dropdown-item" href="/reservations">Mes réservations</a></li>
+              <li th:if="${#authentication.hasRole('ADMIN')}">
+                <a class="dropdown-item" href="/dashboard">Dashboard Admin</a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form th:action="@{/logout}" method="post">
+                  <button type="submit" class="dropdown-item">Déconnexion</button>
+                </form>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<div class="hero">
+  <div class="hero-content">
+    <h1>Location de Voitures Simple et Rapide</h1>
+    <p class="lead">Trouvez la voiture parfaite pour vos besoins</p>
+    <a href="/location-page" class="btn btn-primary btn-lg">Louer maintenant</a>
+  </div>
+</div>
+
+<!-- Features Section -->
+<section class="py-5" id="services">
+  <div class="container">
+    <h2 class="text-center mb-5">Nos Services</h2>
+    <div class="row">
+      <div class="col-lg-4 mb-4">
+        <div class="feature-box shadow">
+          <i class="fas fa-car fa-3x mb-3 text-primary"></i>
+          <h3>Large Choix de Véhicules</h3>
+          <p>Nous proposons une large gamme de véhicules pour répondre à tous vos besoins.</p>
+        </div>
+      </div>
+      <div class="col-lg-4 mb-4">
+        <div class="feature-box shadow">
+          <i class="fas fa-money-bill-wave fa-3x mb-3 text-primary"></i>
+          <h3>Prix Compétitifs</h3>
+          <p>Nos tarifs sont transparents et sans frais cachés.</p>
+        </div>
+      </div>
+      <div class="col-lg-4 mb-4">
+        <div class="feature-box shadow">
+          <i class="fas fa-headset fa-3x mb-3 text-primary"></i>
+          <h3>Service Client 24/7</h3>
+          <p>Notre équipe est disponible pour vous aider à tout moment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Cars -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center mb-5">Voitures Populaires</h2>
+    <div class="row">
+      <div th:each="voiture : ${voituresDisponibles}" class="col-md-4 mb-4">
+        <div class="card car-card h-100">
+          <img th:src="'https://via.placeholder.com/300x200?text=' + ${voiture.marque} + '+' + ${voiture.modele}"
+               class="card-img-top"
+               th:alt="${voiture.marque} + ' ' + ${voiture.modele}">
+          <div class="card-body">
+            <h5 class="card-title" th:text="${voiture.marque} + ' ' + ${voiture.modele}">Marque Modèle</h5>
+            <p class="card-text">Immatriculation: <span th:text="${voiture.immatriculation}">XXX-XXX-XX</span></p>
+            <p class="card-text">Prix: <span th:text="${voiture.prixParJour}">0</span> € / jour</p>
+            <a href="/location-page" class="btn btn-primary">Réserver maintenant</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Section -->
+<section class="py-5" id="contact">
+  <div class="container">
+    <h2 class="text-center mb-5">Contactez-nous</h2>
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <form th:action="@{/contact}" method="post">
+          <div class="mb-3">
+            <label for="name" class="form-label">Nom</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="message" class="form-label">Message</label>
+            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Envoyer</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <h4>Informations de contact</h4>
+        <p><i class="fas fa-map-marker-alt me-2"></i> 123 Rue de la Location, 75000 Paris</p>
+        <p><i class="fas fa-phone me-2"></i> +33 1 23 45 67 89</p>
+        <p><i class="fas fa-envelope me-2"></i> contact@carrental.com</p>
+        <div class="mt-4">
+          <a href="#" class="text-decoration-none me-3"><i class="fab fa-facebook fa-2x"></i></a>
+          <a href="#" class="text-decoration-none me-3"><i class="fab fa-twitter fa-2x"></i></a>
+          <a href="#" class="text-decoration-none me-3"><i class="fab fa-instagram fa-2x"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>À propos de nous</h5>
+        <p>Nous sommes une entreprise de location de voitures offrant des services de qualité depuis plus de 10 ans.</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Liens rapides</h5>
+        <ul class="list-unstyled">
+          <li><a href="/" class="text-white">Accueil</a></li>
+          <li><a href="/location-page" class="text-white">Réserver</a></li>
+          <li><a href="#services" class="text-white">Services</a></li>
+          <li><a href="#contact" class="text-white">Contact</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4">
+        <h5>Newsletter</h5>
+        <p>Abonnez-vous pour recevoir nos offres spéciales</p>
+        <form class="d-flex">
+          <input type="email" class="form-control me-2" placeholder="Votre email">
+          <button class="btn btn-outline-light" type="submit">S'abonner</button>
+        </form>
+      </div>
+    </div>
+    <hr class="mt-4">
+    <div class="text-center">
+      <p>&copy; 2025 CarRental. Tous droits réservés.</p>
+    </div>
+  </div>
+</footer>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

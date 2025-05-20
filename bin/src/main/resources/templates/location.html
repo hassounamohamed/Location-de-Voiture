@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DriveLoc - Locations</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        }
+
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+
+        .badge-status {
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+        }
+
+        .btn-primary {
+            background-color: #4e73df;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a5bc7;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="main-content">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <div class="container-fluid">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Gestion des Locations</h1>
+            <a href="/api/locations/new" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Nouvelle Location
+            </a>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Liste des Locations</h6>
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Filtrer
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Toutes</a></li>
+                        <li><a class="dropdown-item" href="#">Actives</a></li>
+                        <li><a class="dropdown-item" href="#">Terminées</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Voiture</th>
+                            <th>Date Début</th>
+                            <th>Date Fin</th>
+                            <th>Prix Total</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="location : ${locations}">
+                            <td th:text="${location.utilisateur.prenom} + ' ' + ${location.utilisateur.nom}">Jean Dupont</td>
+                            <td th:text="${location.voiture.marque} + ' ' + ${location.voiture.modele}">Toyota Corolla</td>
+                            <td th:text="${#temporals.format(location.dateDebut, 'dd/MM/yyyy')}">01/01/2023</td>
+                            <td th:text="${#temporals.format(location.dateFin, 'dd/MM/yyyy')}">10/01/2023</td>
+                            <td th:text="${location.prixTotal} + ' €'">450 €</td>
+                            <td>
+                                        <span th:class="${location.statut == 'EN_COURS'} ? 'badge bg-primary badge-status' :
+                                              (${location.statut == 'TERMINEE'} ? 'badge bg-success badge-status' : 'badge bg-warning badge-status')"
+                                              th:text="${location.statut == 'EN_COURS'} ? 'En cours' :
+                                              (${location.statut == 'TERMINEE'} ? 'Terminée' : 'Réservée')">
+                                            En cours
+                                        </span>
+                            </td>
+                            <td>
+                                <a th:href="@{/api/locations/{id}(id=${location.id})}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a th:href="@{/api/locations/delete/{id}(id=${location.id})}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+</html>

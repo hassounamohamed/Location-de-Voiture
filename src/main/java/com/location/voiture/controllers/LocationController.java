@@ -40,4 +40,7 @@ public class LocationController {
     public void deleteLocation(@PathVariable Long id) {
         locationService.deleteLocation(id);
     }
+
 }
+
+
