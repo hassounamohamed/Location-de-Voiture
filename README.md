@@ -22,7 +22,7 @@ Application backend pour un système de gestion de location de voitures.
 
 ## 💻 Technologies
 - **Backend** : Java 17, Spring Boot 3.1, Spring Security
-- **Base de données** : MySQL/PostgreSQL
+- **Base de données** : MySQL
 - **Outils** : Maven, Lombok, MapStruct
 
 ## 🛠 Installation
